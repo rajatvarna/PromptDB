@@ -17,6 +17,7 @@ export interface Prompt {
   tags: string[];
   rating: number;
   ratingCount: number;
+  isCustom?: boolean;
 }
 
 export type SortOrder = 'newest' | 'oldest' | 'az' | 'za';

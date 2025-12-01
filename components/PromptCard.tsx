@@ -8,6 +8,7 @@ interface PromptCardProps {
   onTagClick: (tag: string) => void;
   onRun: (prompt: Prompt) => void;
   onRate: (id: string, rating: number) => void;
+  onDelete?: (id: string) => void;
   tourTargetMap?: {
     favorite?: string;
     run?: string;
@@ -33,6 +34,7 @@ const PromptCard: React.FC<PromptCardProps> = ({
   onTagClick, 
   onRun, 
   onRate,
+  onDelete,
   tourTargetMap 
 }) => {
   const [copied, setCopied] = useState(false);
@@ -59,30 +61,46 @@ const PromptCard: React.FC<PromptCardProps> = ({
             {prompt.category}
           </span>
           
-          <button
-            id={tourTargetMap?.favorite}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite(prompt.id);
-            }}
-            className={`p-1.5 rounded-full transition-all duration-200 focus:outline-none ${
-              isFavorite 
-                ? 'text-rose-500 bg-rose-50 hover:bg-rose-100 hover:scale-110' 
-                : 'text-slate-300 hover:text-rose-400 hover:bg-slate-50'
-            }`}
-            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-          >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} 
-              viewBox="0 0 20 20" 
-              fill={isFavorite ? "currentColor" : "none"}
-              stroke="currentColor"
-              strokeWidth={isFavorite ? "0" : "2"}
+          <div className="flex items-center gap-1">
+            {prompt.isCustom && onDelete && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if(confirm('Delete this custom prompt?')) onDelete(prompt.id);
+                }}
+                className="p-1.5 rounded-full text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                title="Delete custom prompt"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </button>
+            )}
+            <button
+              id={tourTargetMap?.favorite}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite(prompt.id);
+              }}
+              className={`p-1.5 rounded-full transition-all duration-200 focus:outline-none ${
+                isFavorite 
+                  ? 'text-rose-500 bg-rose-50 hover:bg-rose-100 hover:scale-110' 
+                  : 'text-slate-300 hover:text-rose-400 hover:bg-slate-50'
+              }`}
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
-            </svg>
-          </button>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} 
+                viewBox="0 0 20 20" 
+                fill={isFavorite ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth={isFavorite ? "0" : "2"}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+              </svg>
+            </button>
+          </div>
         </div>
         
         <h3 className="text-lg font-bold text-slate-900 mb-2 leading-tight pr-6">

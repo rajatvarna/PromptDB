@@ -3,46 +3,52 @@ import { PROMPTS } from './data';
 import { Category, SortOrder, Prompt } from './types';
 import PromptCard from './components/PromptCard';
 import RunModal from './components/RunModal';
+import AddPromptModal from './components/AddPromptModal';
 import OnboardingTour from './components/OnboardingTour';
 
 const App: React.FC = () => {
-  // Use state for prompts so we can update ratings
-  const [prompts, setPrompts] = useState<Prompt[]>(PROMPTS);
+  // Load Prompts (Static + Custom from LocalStorage)
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
+
+  useEffect(() => {
+     const savedCustomPrompts = localStorage.getItem('promptdb-custom');
+     const customPrompts: Prompt[] = savedCustomPrompts ? JSON.parse(savedCustomPrompts) : [];
+     
+     // Merge static and custom, ensure no ID collisions if static IDs were numeric
+     // We'll trust static IDs are simple '1', '2' etc. and custom are timestamps or UUIDs
+     setPrompts([...customPrompts, ...PROMPTS]);
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Update state type to include 'Favorites'
   const [selectedCategory, setSelectedCategory] = useState<Category | 'All' | 'Favorites'>('All');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   
-  // Favorites State with Local Storage Persistence
+  // Favorites State
   const [favorites, setFavorites] = useState<string[]>(() => {
     const saved = localStorage.getItem('promptdb-favorites');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Tour State
+  // UI States
   const [showTour, setShowTour] = useState(false);
+  const [activePrompt, setActivePrompt] = useState<Prompt | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
-  // Check if tour should be shown on mount
+  // Check tour
   useEffect(() => {
     const hasSeenTour = localStorage.getItem('promptdb-tour-completed');
-    if (!hasSeenTour) {
-      setShowTour(true);
-    }
+    if (!hasSeenTour) setShowTour(true);
   }, []);
-
-  const handleTourComplete = () => {
-    setShowTour(false);
-    localStorage.setItem('promptdb-tour-completed', 'true');
-  };
-
-  // Modal State
-  const [activePrompt, setActivePrompt] = useState<Prompt | null>(null);
 
   // Persist favorites
   useEffect(() => {
     localStorage.setItem('promptdb-favorites', JSON.stringify(favorites));
   }, [favorites]);
+
+  const handleTourComplete = () => {
+    setShowTour(false);
+    localStorage.setItem('promptdb-tour-completed', 'true');
+  };
 
   const toggleFavorite = (id: string) => {
     setFavorites(prev => 
@@ -50,6 +56,30 @@ const App: React.FC = () => {
         ? prev.filter(favId => favId !== id) 
         : [...prev, id]
     );
+  };
+
+  const handleSaveCustomPrompt = (newPromptData: Omit<Prompt, 'id' | 'rating' | 'ratingCount' | 'isCustom'>) => {
+    const newPrompt: Prompt = {
+      ...newPromptData,
+      id: `custom-${Date.now()}`,
+      rating: 0,
+      ratingCount: 0,
+      isCustom: true
+    };
+
+    const updatedPrompts = [newPrompt, ...prompts];
+    setPrompts(updatedPrompts);
+    
+    // Persist only custom prompts
+    const customPrompts = updatedPrompts.filter(p => p.isCustom);
+    localStorage.setItem('promptdb-custom', JSON.stringify(customPrompts));
+  };
+
+  const handleDeleteCustomPrompt = (id: string) => {
+    const updatedPrompts = prompts.filter(p => p.id !== id);
+    setPrompts(updatedPrompts);
+    const customPrompts = updatedPrompts.filter(p => p.isCustom);
+    localStorage.setItem('promptdb-custom', JSON.stringify(customPrompts));
   };
 
   // Filter and Sort Logic
@@ -79,9 +109,18 @@ const App: React.FC = () => {
     result.sort((a, b) => {
       if (sortOrder === 'az') return a.title.localeCompare(b.title);
       if (sortOrder === 'za') return b.title.localeCompare(a.title);
-      // For 'newest' we assume higher ID is newer as manually added
-      if (sortOrder === 'newest') return parseInt(b.id) - parseInt(a.id); 
-      if (sortOrder === 'oldest') return parseInt(a.id) - parseInt(b.id);
+      // For 'newest', handle mix of numeric string IDs and timestamp string IDs
+      if (sortOrder === 'newest') {
+         // Custom prompts (timestamps) usually larger/newer than static IDs
+         const idA = a.id.startsWith('custom-') ? parseInt(a.id.split('-')[1]) : parseInt(a.id);
+         const idB = b.id.startsWith('custom-') ? parseInt(b.id.split('-')[1]) : parseInt(b.id);
+         return idB - idA;
+      } 
+      if (sortOrder === 'oldest') {
+        const idA = a.id.startsWith('custom-') ? parseInt(a.id.split('-')[1]) : parseInt(a.id);
+        const idB = b.id.startsWith('custom-') ? parseInt(b.id.split('-')[1]) : parseInt(b.id);
+        return idA - idB;
+      }
       return 0;
     });
 
@@ -104,13 +143,8 @@ const App: React.FC = () => {
       currentPrompts.map(prompt => {
         if (prompt.id === id) {
           const newCount = prompt.ratingCount + 1;
-          // Calculate new average
           const newAvg = ((prompt.rating * prompt.ratingCount) + newRating) / newCount;
-          return {
-            ...prompt,
-            rating: newAvg,
-            ratingCount: newCount
-          };
+          return { ...prompt, rating: newAvg, ratingCount: newCount };
         }
         return prompt;
       })
@@ -120,19 +154,25 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       
-      {/* Onboarding Tour */}
       {showTour && <OnboardingTour onComplete={handleTourComplete} />}
 
-      {/* Run Prompt Modal */}
+      {/* Modals */}
       <RunModal 
         prompt={activePrompt} 
         onClose={() => setActivePrompt(null)} 
       />
+      
+      {showAddModal && (
+        <AddPromptModal 
+          onClose={() => setShowAddModal(false)}
+          onSave={handleSaveCustomPrompt}
+        />
+      )}
 
-      {/* Header / Hero */}
+      {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => {setSearchQuery(''); setSelectedCategory('All');}}>
               <div className="bg-indigo-600 p-2 rounded-lg shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,44 +185,56 @@ const App: React.FC = () => {
               </div>
             </div>
             
-            {/* Search Bar */}
-            <div className="relative w-full md:w-96 group" id="tour-search-filter">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                className="block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200 shadow-sm"
-                placeholder="Search prompts by keyword, tag..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery('')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            <div className="flex items-center gap-4 flex-grow md:flex-grow-0">
+               {/* Search Bar */}
+              <div className="relative w-full md:w-80 group" id="tour-search-filter">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                </button>
-              )}
+                </div>
+                <input
+                  type="text"
+                  className="block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200 shadow-sm"
+                  placeholder="Search prompts..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              
+              {/* Add Prompt Button */}
+              <button 
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                <span className="hidden sm:inline">Add Prompt</span>
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Filters and Controls */}
+        {/* Filters */}
         <div className="mb-8 flex flex-col gap-4">
-          
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             
-            {/* Category Control - Mobile (Dropdown) */}
+            {/* Mobile Category */}
             <div className="block md:hidden w-full">
               <label htmlFor="category-select" className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">
                 Category
@@ -208,7 +260,7 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Category Control - Desktop (Pills) */}
+            {/* Desktop Category */}
             <div className="hidden md:flex flex-wrap gap-2 items-center">
               <span className="text-sm font-medium text-slate-500 mr-2">Filters:</span>
               <button
@@ -292,6 +344,7 @@ const App: React.FC = () => {
                 onTagClick={handleTagClick}
                 onRun={setActivePrompt}
                 onRate={handleRatePrompt}
+                onDelete={handleDeleteCustomPrompt}
                 tourTargetMap={index === 0 ? { favorite: 'tour-fav-btn', run: 'tour-run-btn' } : undefined}
               />
             ))}
@@ -307,7 +360,7 @@ const App: React.FC = () => {
             <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto">
               {selectedCategory === 'Favorites' 
                 ? "You haven't added any favorites yet. Click the heart icon on a prompt to save it here."
-                : "We couldn't find any prompts matching your criteria. Try different keywords or filters."}
+                : "We couldn't find any prompts matching your criteria."}
             </p>
             <button
               onClick={() => {
