@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Category, Prompt } from '../types';
 
 interface AddPromptModalProps {
+  initialData?: Prompt;
   onClose: () => void;
   onSave: (prompt: Omit<Prompt, 'id' | 'rating' | 'ratingCount' | 'isCustom'>) => void;
 }
 
-const AddPromptModal: React.FC<AddPromptModalProps> = ({ onClose, onSave }) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<Category>(Category.INVESTMENT_RESEARCH);
-  const [tags, setTags] = useState('');
-  const [content, setContent] = useState('');
+const AddPromptModal: React.FC<AddPromptModalProps> = ({ onClose, onSave, initialData }) => {
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [description, setDescription] = useState(initialData?.description || '');
+  const [category, setCategory] = useState<Category>(initialData?.category || Category.INVESTMENT_RESEARCH);
+  const [tags, setTags] = useState(initialData?.tags.join(', ') || '');
+  const [content, setContent] = useState(initialData?.content || '');
   const [error, setError] = useState('');
+
+  const isEditing = !!initialData;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,8 +45,12 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ onClose, onSave }) => {
         <div className="relative inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
           <form onSubmit={handleSubmit} className="bg-white px-4 pt-5 pb-4 sm:p-6">
             <div className="mb-5 border-b border-slate-100 pb-4">
-               <h3 className="text-xl font-bold text-slate-900">Add Custom Prompt</h3>
-               <p className="text-sm text-slate-500">Create your own analyst prompt to save to your library.</p>
+               <h3 className="text-xl font-bold text-slate-900">
+                 {isEditing ? 'Edit Custom Prompt' : 'Add Custom Prompt'}
+               </h3>
+               <p className="text-sm text-slate-500">
+                 {isEditing ? 'Update your prompt details below.' : 'Create your own analyst prompt to save to your library.'}
+               </p>
             </div>
 
             {error && (
@@ -125,7 +132,7 @@ const AddPromptModal: React.FC<AddPromptModalProps> = ({ onClose, onSave }) => {
                 type="submit"
                 className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 shadow-sm"
               >
-                Save Prompt
+                {isEditing ? 'Update Prompt' : 'Save Prompt'}
               </button>
             </div>
           </form>
