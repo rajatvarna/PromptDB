@@ -8,6 +8,8 @@ export const PROMPTS: Prompt[] = [
     description: 'Generates a detailed 30-page report on the history, evolution, and major players of an industry.',
     category: Category.INDUSTRY_ANALYSIS,
     tags: ['history', 'deep-research', 'macro', 'gemini'],
+    rating: 4.8,
+    ratingCount: 124,
     content: `ROLE
 You are an economic historian and industry analyst.
 Write a factual, data-based history of the [Industry Name] showing how it formed, evolved, and produced its major winners.
@@ -37,6 +39,8 @@ REPORT OUTLINE
     description: 'A forward-looking report explaining current drivers, structural limits, and future scenarios.',
     category: Category.INDUSTRY_ANALYSIS,
     tags: ['growth', 'future', 'strategy', 'gemini'],
+    rating: 4.7,
+    ratingCount: 98,
     content: `ROLE
 You are an industry analyst and strategist.
 Write a factual, forward-looking report on the [Industry Name] explaining current growth drivers, structural limits, and plausible future scenarios.
@@ -65,6 +69,8 @@ REPORT OUTLINE
     description: 'Technical report on the operating logic: value chain, cost drivers, cash flows, and efficiency.',
     category: Category.COMPANY_OPS,
     tags: ['economics', 'operations', 'margins', 'value-chain'],
+    rating: 4.9,
+    ratingCount: 156,
     content: `ROLE
 You are an industry economist and operations analyst.
 Write a precise, technical report explaining the complete operating logic of the [Industry Name]: its value chain, cost drivers, cash flows, and efficiency mechanics.
@@ -94,6 +100,8 @@ REPORT OUTLINE
     description: 'Identify the best public companies to analyze for a specific industry value chain.',
     category: Category.INVESTMENT_RESEARCH,
     tags: ['screening', 'public-companies', 'discovery'],
+    rating: 4.5,
+    ratingCount: 42,
     content: `List 5-7 public companies whose annual reports best represent the [Industry Name] value chain.
 
 For each, include:
@@ -112,6 +120,8 @@ Then add:
     description: 'System prompt to turn an AI into a customized industry analyst using uploaded sources.',
     category: Category.WRITING,
     tags: ['persona', 'notebooklm', 'style'],
+    rating: 4.6,
+    ratingCount: 75,
     content: `Act as my industry analyst.
 You will receive questions about this industry, specific companies, or recent developments.
 Use the uploaded sources to explain for an investor the key economic drivers, business models, capital intensity, competitive forces, and key metrics from an investor’s perspective, with numbers, examples, and page citations.
@@ -123,6 +133,8 @@ When possible, present your answers in bullet points for clarity.`
     description: 'Analyze new earnings results in the context of the broader industry.',
     category: Category.INVESTMENT_RESEARCH,
     tags: ['earnings', 'quarterly', 'analysis'],
+    rating: 4.4,
+    ratingCount: 38,
     content: `Here are [Company Name]’s Q3 results. Based on what you know about the company and the industry, explain what these numbers mean — especially the changes in margins, growth, and guidance.`
   },
 
@@ -133,6 +145,8 @@ When possible, present your answers in bullet points for clarity.`
     description: 'Sets the AI as a senior equity analyst specializing in high-quality small-caps.',
     category: Category.INVESTMENT_RESEARCH,
     tags: ['persona', 'small-cap', 'equity-research'],
+    rating: 4.8,
+    ratingCount: 210,
     content: `You are my senior equity analyst with 40+ years of experience in the field of small-cap investing, niche in high-quality small-caps. Your goal is to help me identify and understand high-quality small-cap businesses. Base all insights on verifiable facts and logic. Provide concise, data-driven reasoning.`
   },
   {
@@ -141,6 +155,8 @@ When possible, present your answers in bullet points for clarity.`
     description: 'Filter for high-potential small-cap stocks based on specific financial criteria.',
     category: Category.INVESTMENT_RESEARCH,
     tags: ['screening', 'quantitative', 'small-cap'],
+    rating: 4.7,
+    ratingCount: 185,
     content: `List 25 listed small-cap companies (< $1 B market cap) with:
 - Revenue growth > 10% CAGR (5 yrs)
 - ROIC > 12%
@@ -148,7 +164,7 @@ When possible, present your answers in bullet points for clarity.`
 - Insider ownership > 8%
 - Rank by stability of gross margins.
 
-Pro Move: Also explain why each meets criteria; pattern recognition beats data lists.`
+Pro Move: Ask AI to also explain why each meets criteria, pattern recognition beats data lists.`
   },
   {
     id: '9',
@@ -156,6 +172,8 @@ Pro Move: Also explain why each meets criteria; pattern recognition beats data l
     description: 'Identify industries with structural tailwinds and low institutional coverage.',
     category: Category.INDUSTRY_ANALYSIS,
     tags: ['market-structure', 'discovery', 'niche'],
+    rating: 4.3,
+    ratingCount: 25,
     content: `Which industries under €2 B total market size have structural tailwinds (digitalization, regulation, demographic change) and low institutional coverage?`
   },
   {
@@ -164,6 +182,8 @@ Pro Move: Also explain why each meets criteria; pattern recognition beats data l
     description: 'Quickly understand a business model and revenue streams.',
     category: Category.COMPANY_OPS,
     tags: ['business-model', 'due-diligence'],
+    rating: 4.5,
+    ratingCount: 60,
     content: `Explain [Company]’s business model in 4 sentences.
 Map revenue streams, customer concentration, and pricing power.`
   },
@@ -173,6 +193,8 @@ Map revenue streams, customer concentration, and pricing power.`
     description: 'Extract and analyze key financial trends and anomalies.',
     category: Category.INVESTMENT_RESEARCH,
     tags: ['financials', 'trends', 'cash-flow'],
+    rating: 4.9,
+    ratingCount: 110,
     content: `Extract the last 5 years of revenue, EBITDA, FCF, ROIC, and debt levels.
 Identify trends, anomalies, and capital allocation behavior.
 Then: Compare FCF generation to net income. Any red flags in cash conversion?`
@@ -183,6 +205,8 @@ Then: Compare FCF generation to net income. Any red flags in cash conversion?`
     description: 'Evaluate the durability and type of a company\'s economic moat.',
     category: Category.INVESTMENT_RESEARCH,
     tags: ['moat', 'competitive-advantage', 'strategy'],
+    rating: 4.7,
+    ratingCount: 145,
     content: `Based on filings and customer data, which type of moat does [Company] have (Cost, Network, Brand, Process, Regulatory)?
 Rate durability from 1–10 with justification.
 List specific signals that the moat is strengthening or weakening.`
@@ -193,6 +217,8 @@ List specific signals that the moat is strengthening or weakening.`
     description: 'Identify accounting or governance risks from filings.',
     category: Category.INVESTMENT_RESEARCH,
     tags: ['risk', 'forensic', 'accounting'],
+    rating: 4.8,
+    ratingCount: 95,
     content: `List any accounting or governance risks from the last 3 years of filings.
 Highlight auditor changes, related-party transactions, or sudden margin shifts.
 Identify anomalies between net income and cash flow.`
@@ -203,6 +229,8 @@ Identify anomalies between net income and cash flow.`
     description: 'Synthesize data into a concise 1-page investment memo.',
     category: Category.WRITING,
     tags: ['thesis', 'summary', 'memo'],
+    rating: 4.6,
+    ratingCount: 72,
     content: `Summarize [Company] in one page:
 - Elevator pitch (3 sentences)
 - Growth drivers
@@ -216,6 +244,8 @@ Identify anomalies between net income and cash flow.`
     description: 'Analyze probability vs payoff for a potential investment.',
     category: Category.INVESTMENT_RESEARCH,
     tags: ['risk-reward', 'probability', 'mental-model'],
+    rating: 4.9,
+    ratingCount: 130,
     content: `What must go right for this to 5× in 5 years?
 What must go wrong for it to fail?
 Quantify each.`
@@ -226,6 +256,8 @@ Quantify each.`
     description: 'Run a scenario-based DCF analysis to find fair value range.',
     category: Category.VALUATION,
     tags: ['dcf', 'valuation', 'modeling'],
+    rating: 4.7,
+    ratingCount: 165,
     content: `Run a 10-year DCF with 3 scenarios:
 - Base: 10% growth, 12% EBIT margin, 2% terminal
 - Bull: 15% growth, 15% margin
@@ -240,6 +272,8 @@ Then: Summarize what’s priced in at today’s valuation.`
     description: 'Analyze management consistency and integrity via earnings calls.',
     category: Category.INVESTMENT_RESEARCH,
     tags: ['management', 'qualitative', 'earnings-calls'],
+    rating: 4.5,
+    ratingCount: 55,
     content: `Analyze all earnings call transcripts since 2020 for [Company].
 Summarize tone, use of forward-looking language, and mentions of execution discipline.
 Identify patterns of over- or under-promising.
@@ -251,6 +285,8 @@ Then cross-compare: Benchmark management commentary vs. actual results — quant
     description: 'Automated weekly scan for high-potential small caps.',
     category: Category.AUTOMATION,
     tags: ['weekly', 'scanner', 'workflow'],
+    rating: 4.4,
+    ratingCount: 88,
     content: `Every Monday, scan global small-caps under $1 B with:
 - 10% YoY revenue growth
 - Insider buying in last 90 days
@@ -263,6 +299,8 @@ Summarize top 5 with 5-line thesis and valuation range.`
     description: 'Use AI to audit your own investment thinking and biases.',
     category: Category.AUTOMATION,
     tags: ['self-improvement', 'psychology', 'bias'],
+    rating: 4.8,
+    ratingCount: 115,
     content: `Review my last 10 investment memos.
 Identify recurring biases, overly optimistic assumptions, or ignored risk signs.
 Summarize lessons and build a correction checklist.`
@@ -273,6 +311,8 @@ Summarize lessons and build a correction checklist.`
     description: 'Analyze acquisition trends in a specific industry.',
     category: Category.INDUSTRY_ANALYSIS,
     tags: ['m&a', 'strategy', 'corporate-finance'],
+    rating: 4.2,
+    ratingCount: 30,
     content: `List all acquisitions in [industry] under $500 M since 2020.
 Identify valuation multiples and strategic rationale.
 What patterns do top acquirers target?`

@@ -1,20 +1,60 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PROMPTS } from './data';
 import { Category, SortOrder, Prompt } from './types';
 import PromptCard from './components/PromptCard';
 import RunModal from './components/RunModal';
+import OnboardingTour from './components/OnboardingTour';
 
 const App: React.FC = () => {
+  // Use state for prompts so we can update ratings
+  const [prompts, setPrompts] = useState<Prompt[]>(PROMPTS);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<Category | 'All'>('All');
+  
+  // Update state type to include 'Favorites'
+  const [selectedCategory, setSelectedCategory] = useState<Category | 'All' | 'Favorites'>('All');
   const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
   
+  // Favorites State with Local Storage Persistence
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    const saved = localStorage.getItem('promptdb-favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Tour State
+  const [showTour, setShowTour] = useState(false);
+
+  // Check if tour should be shown on mount
+  useEffect(() => {
+    const hasSeenTour = localStorage.getItem('promptdb-tour-completed');
+    if (!hasSeenTour) {
+      setShowTour(true);
+    }
+  }, []);
+
+  const handleTourComplete = () => {
+    setShowTour(false);
+    localStorage.setItem('promptdb-tour-completed', 'true');
+  };
+
   // Modal State
   const [activePrompt, setActivePrompt] = useState<Prompt | null>(null);
 
+  // Persist favorites
+  useEffect(() => {
+    localStorage.setItem('promptdb-favorites', JSON.stringify(favorites));
+  }, [favorites]);
+
+  const toggleFavorite = (id: string) => {
+    setFavorites(prev => 
+      prev.includes(id) 
+        ? prev.filter(favId => favId !== id) 
+        : [...prev, id]
+    );
+  };
+
   // Filter and Sort Logic
   const filteredAndSortedPrompts = useMemo(() => {
-    let result = [...PROMPTS];
+    let result = [...prompts];
 
     // Filter by Search
     if (searchQuery) {
@@ -28,8 +68,10 @@ const App: React.FC = () => {
       );
     }
 
-    // Filter by Category
-    if (selectedCategory !== 'All') {
+    // Filter by Category or Favorites
+    if (selectedCategory === 'Favorites') {
+      result = result.filter(p => favorites.includes(p.id));
+    } else if (selectedCategory !== 'All') {
       result = result.filter((p) => p.category === selectedCategory);
     }
 
@@ -44,22 +86,43 @@ const App: React.FC = () => {
     });
 
     return result;
-  }, [searchQuery, selectedCategory, sortOrder]);
+  }, [searchQuery, selectedCategory, sortOrder, prompts, favorites]);
 
   const stats = useMemo(() => {
     return {
-      total: PROMPTS.length,
+      total: prompts.length,
       displayed: filteredAndSortedPrompts.length,
     };
-  }, [filteredAndSortedPrompts.length]);
+  }, [prompts.length, filteredAndSortedPrompts.length]);
 
   const handleTagClick = (tag: string) => {
     setSearchQuery(tag);
   };
 
+  const handleRatePrompt = (id: string, newRating: number) => {
+    setPrompts(currentPrompts => 
+      currentPrompts.map(prompt => {
+        if (prompt.id === id) {
+          const newCount = prompt.ratingCount + 1;
+          // Calculate new average
+          const newAvg = ((prompt.rating * prompt.ratingCount) + newRating) / newCount;
+          return {
+            ...prompt,
+            rating: newAvg,
+            ratingCount: newCount
+          };
+        }
+        return prompt;
+      })
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       
+      {/* Onboarding Tour */}
+      {showTour && <OnboardingTour onComplete={handleTourComplete} />}
+
       {/* Run Prompt Modal */}
       <RunModal 
         prompt={activePrompt} 
@@ -67,31 +130,31 @@ const App: React.FC = () => {
       />
 
       {/* Header / Hero */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => {setSearchQuery(''); setSelectedCategory('All');}}>
-              <div className="bg-indigo-600 p-2 rounded-lg">
+              <div className="bg-indigo-600 p-2 rounded-lg shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-900 tracking-tight">Prompt<span className="text-indigo-600">DB</span></h1>
-                <p className="text-xs text-slate-500">Analyst Grade AI Prompts</p>
+                <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-none">Prompt<span className="text-indigo-600">DB</span></h1>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Analyst Grade AI Prompts</p>
               </div>
             </div>
             
             {/* Search Bar */}
-            <div className="relative w-full md:w-96">
+            <div className="relative w-full md:w-96 group" id="tour-search-filter">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
               <input
                 type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
+                className="block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200 shadow-sm"
                 placeholder="Search prompts by keyword, tag..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -115,79 +178,143 @@ const App: React.FC = () => {
       <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         {/* Filters and Controls */}
-        <div className="mb-8 flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+        <div className="mb-8 flex flex-col gap-4">
           
-          {/* Category Pills */}
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedCategory('All')}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === 'All'
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              All
-            </button>
-            {Object.values(Category).filter(c => c !== 'All').map((cat) => (
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            
+            {/* Category Control - Mobile (Dropdown) */}
+            <div className="block md:hidden w-full">
+              <label htmlFor="category-select" className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">
+                Category
+              </label>
+              <div className="relative">
+                <select
+                  id="category-select"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value as Category | 'All' | 'Favorites')}
+                  className="appearance-none block w-full pl-3 pr-10 py-2.5 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm bg-white"
+                >
+                  <option value="All">All Categories</option>
+                  <option value="Favorites">♥ Favorites</option>
+                  {Object.values(Category).filter(c => c !== 'All').map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Category Control - Desktop (Pills) */}
+            <div className="hidden md:flex flex-wrap gap-2 items-center">
+              <span className="text-sm font-medium text-slate-500 mr-2">Filters:</span>
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  selectedCategory === cat
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                onClick={() => setSelectedCategory('All')}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border ${
+                  selectedCategory === 'All'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-md transform scale-105'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
-                {cat}
+                All
               </button>
-            ))}
-          </div>
+              
+              <button
+                onClick={() => setSelectedCategory('Favorites')}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border flex items-center gap-1.5 ${
+                  selectedCategory === 'Favorites'
+                    ? 'bg-rose-500 text-white border-rose-500 shadow-md transform scale-105'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-rose-200 hover:text-rose-600 hover:bg-rose-50'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                </svg>
+                Favorites
+              </button>
 
-          {/* Sort Control */}
-          <div className="flex items-center gap-3">
-             <span className="text-sm text-slate-500 hidden sm:inline-block">
-               Showing {stats.displayed} of {stats.total} prompts
-             </span>
-             <div className="h-4 w-px bg-slate-300 hidden sm:block"></div>
-             <select
-               value={sortOrder}
-               onChange={(e) => setSortOrder(e.target.value as SortOrder)}
-               className="block w-full pl-3 pr-10 py-1.5 text-sm border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md border bg-white shadow-sm cursor-pointer"
-             >
-               <option value="newest">Newest Added</option>
-               <option value="oldest">Oldest Added</option>
-               <option value="az">A-Z</option>
-               <option value="za">Z-A</option>
-             </select>
+              <div className="w-px h-5 bg-slate-300 mx-1"></div>
+
+              {Object.values(Category).filter(c => c !== 'All').map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border ${
+                    selectedCategory === cat
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform scale-105'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Sort Control */}
+            <div className="flex items-center gap-3 md:ml-auto w-full md:w-auto">
+               <span className="text-sm text-slate-500 hidden lg:inline-block whitespace-nowrap">
+                 {stats.displayed} prompts
+               </span>
+               <div className="h-4 w-px bg-slate-300 hidden lg:block"></div>
+               <div className="relative w-full md:w-48">
+                 <select
+                   value={sortOrder}
+                   onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+                   className="appearance-none block w-full pl-3 pr-10 py-2 text-sm border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg border bg-white shadow-sm cursor-pointer"
+                 >
+                   <option value="newest">Newest Added</option>
+                   <option value="oldest">Oldest Added</option>
+                   <option value="az">Name (A-Z)</option>
+                   <option value="za">Name (Z-A)</option>
+                 </select>
+                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                    </svg>
+                 </div>
+               </div>
+            </div>
           </div>
         </div>
 
         {/* Grid */}
         {filteredAndSortedPrompts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredAndSortedPrompts.map((prompt) => (
+            {filteredAndSortedPrompts.map((prompt, index) => (
               <PromptCard 
                 key={prompt.id} 
                 prompt={prompt} 
+                isFavorite={favorites.includes(prompt.id)}
+                onToggleFavorite={toggleFavorite}
                 onTagClick={handleTagClick}
                 onRun={setActivePrompt}
+                onRate={handleRatePrompt}
+                tourTargetMap={index === 0 ? { favorite: 'tour-fav-btn', run: 'tour-run-btn' } : undefined}
               />
             ))}
           </div>
         ) : (
           <div className="text-center py-20 bg-white rounded-xl border border-dashed border-slate-300">
-            <svg className="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 className="mt-2 text-sm font-medium text-slate-900">No prompts found</h3>
-            <p className="mt-1 text-sm text-slate-500">Try adjusting your search or filter to find what you're looking for.</p>
+            <div className="mx-auto h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+              <svg className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-slate-900">No prompts found</h3>
+            <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto">
+              {selectedCategory === 'Favorites' 
+                ? "You haven't added any favorites yet. Click the heart icon on a prompt to save it here."
+                : "We couldn't find any prompts matching your criteria. Try different keywords or filters."}
+            </p>
             <button
               onClick={() => {
                 setSearchQuery('');
                 setSelectedCategory('All');
               }}
-              className="mt-6 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+              className="mt-6 inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none transition-colors"
             >
               Clear filters
             </button>
@@ -196,10 +323,18 @@ const App: React.FC = () => {
       </main>
 
       <footer className="bg-white border-t border-slate-200 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-center text-sm text-slate-400">
-            &copy; 2025 AI Analyst PromptDB. All rights reserved. Sourced from expert PDFs.
-          </p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+             <div className="flex items-center gap-2">
+                <div className="h-6 w-6 bg-indigo-600 rounded flex items-center justify-center">
+                    <span className="text-white font-bold text-xs">AI</span>
+                </div>
+                <span className="text-sm font-semibold text-slate-900">PromptDB</span>
+             </div>
+             <p className="text-center text-sm text-slate-500">
+               &copy; {new Date().getFullYear()} AI Analyst PromptDB. All rights reserved.
+             </p>
+          </div>
         </div>
       </footer>
     </div>
