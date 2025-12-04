@@ -318,3 +318,84 @@ Identify valuation multiples and strategic rationale.
 What patterns do top acquirers target?`
   }
 ];
+
+export const PROMPT_TEMPLATES: Partial<Prompt>[] = [
+  {
+    title: 'SWOT Analysis',
+    description: 'A classic framework for analyzing a company\'s Strengths, Weaknesses, Opportunities, and Threats.',
+    category: Category.INVESTMENT_RESEARCH,
+    tags: ['swot', 'strategy', 'analysis'],
+    content: `Conduct a detailed SWOT analysis for [Company Name].
+    
+STRENGTHS:
+- What unique assets or capabilities does the company possess?
+- Where do they have a competitive advantage?
+
+WEAKNESSES:
+- What areas are they underperforming in?
+- What resources do they lack compared to competitors?
+
+OPPORTUNITIES:
+- What market trends could they exploit?
+- Are there adjacent markets they can enter?
+
+THREATS:
+- Who are the emerging competitors?
+- Are there regulatory or macro risks?
+
+CONCLUSION:
+- Weigh the strengths vs threats to determine the overall outlook.`
+  },
+  {
+    title: 'Porter\'s Five Forces',
+    description: 'Evaluate the competitive intensity and attractiveness of an industry.',
+    category: Category.INDUSTRY_ANALYSIS,
+    tags: ['strategy', 'industry', 'competition'],
+    content: `Analyze the [Industry Name] using Porter's Five Forces framework.
+
+1. Threat of New Entrants: How high are barriers to entry (capital, regulation, brand)?
+2. Bargaining Power of Suppliers: Are suppliers concentrated? Can they dictate prices?
+3. Bargaining Power of Buyers: Are customers fragmented or concentrated? heavily price-sensitive?
+4. Threat of Substitute Products: Are there alternative solutions that offer better value?
+5. Competitive Rivalry: Is it a price war or value-based competition?
+
+Summary: Is this industry structurally attractive for long-term capital?`
+  },
+  {
+    title: 'Earnings Call Sentiment Analysis',
+    description: 'Analyze the tone and sentiment of executive leadership during earnings calls.',
+    category: Category.INVESTMENT_RESEARCH,
+    tags: ['sentiment', 'earnings', 'management'],
+    content: `Analyze the transcript of the latest earnings call for [Company Name].
+
+- What was the overall sentiment (Bullish, Cautious, Bearish)?
+- Extract key quotes related to future guidance.
+- Did management dodge any analyst questions? If so, which ones?
+- Compare the tone of the CEO vs the CFO.
+- Flag any words indicating uncertainty (e.g., "headwinds", "challenging", "transition").`
+  },
+  {
+    title: 'Executive Team Audit',
+    description: 'Assess the background, track record, and alignment of company leadership.',
+    category: Category.COMPANY_OPS,
+    tags: ['management', 'governance', 'leadership'],
+    content: `Perform an audit on the executive team of [Company Name].
+
+- CEO Track Record: Past successes/failures. Tenure at current company.
+- Insider Ownership: Do executives hold significant stock? Have they been buying or selling recently?
+- Compensation: Is pay aligned with shareholder value (ROIC, EPS) or just size (Revenue)?
+- Board Composition: Are board members independent or insiders?`
+  },
+  {
+    title: 'Product/Market Fit Check',
+    description: 'Evaluate customer feedback and traction to assess product-market fit.',
+    category: Category.INVESTMENT_RESEARCH,
+    tags: ['product', 'customer', 'reviews'],
+    content: `Analyze the product-market fit for [Company Name]'s core product.
+
+- What problem does it solve for the customer?
+- Summarize the top 3 positive and negative themes from recent customer reviews (G2, Capterra, Amazon, etc.).
+- Is the product a "must-have" or "nice-to-have"?
+- How high are the switching costs for customers?`
+  }
+];

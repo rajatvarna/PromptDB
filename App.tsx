@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { PROMPTS } from './data';
-import { Category, SortOrder, Prompt } from './types';
+import { Category, SortOrder, Prompt, PromptVersion } from './types';
 import PromptCard from './components/PromptCard';
 import RunModal from './components/RunModal';
 import AddPromptModal from './components/AddPromptModal';
@@ -102,14 +102,29 @@ const App: React.FC = () => {
     );
   };
 
-  const handleSaveCustomPrompt = (promptData: Omit<Prompt, 'id' | 'rating' | 'ratingCount' | 'isCustom'>) => {
+  const handleSaveCustomPrompt = (promptData: Omit<Prompt, 'id' | 'rating' | 'ratingCount' | 'isCustom' | 'versions'>) => {
     if (editingPrompt) {
-      // Update existing prompt
-      const updatedPrompts = customPrompts.map(p => 
-        p.id === editingPrompt.id 
-          ? { ...p, ...promptData } 
-          : p
-      );
+      // Update existing prompt with version history
+      const updatedPrompts = customPrompts.map(p => {
+        if (p.id === editingPrompt.id) {
+           // Create a version snapshot of the state BEFORE this update
+           const versionSnapshot: PromptVersion = {
+             timestamp: Date.now(),
+             title: p.title,
+             description: p.description,
+             content: p.content,
+             category: p.category,
+             tags: p.tags
+           };
+           
+           return { 
+             ...p, 
+             ...promptData, 
+             versions: [versionSnapshot, ...(p.versions || [])]
+           };
+        }
+        return p;
+      });
       updateCustomPrompts(updatedPrompts);
       setEditingPrompt(null);
     } else {
@@ -119,7 +134,8 @@ const App: React.FC = () => {
         id: `custom-${Date.now()}`,
         rating: 0,
         ratingCount: 0,
-        isCustom: true
+        isCustom: true,
+        versions: []
       };
       updateCustomPrompts([newPrompt, ...customPrompts]);
     }

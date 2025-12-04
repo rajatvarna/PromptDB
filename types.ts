@@ -8,6 +8,15 @@ export enum Category {
   AUTOMATION = 'Workflow Automation'
 }
 
+export interface PromptVersion {
+  timestamp: number;
+  title: string;
+  description: string;
+  content: string;
+  category: Category;
+  tags: string[];
+}
+
 export interface Prompt {
   id: string;
   title: string;
@@ -18,6 +27,7 @@ export interface Prompt {
   rating: number;
   ratingCount: number;
   isCustom?: boolean;
+  versions?: PromptVersion[];
 }
 
 export type SortOrder = 'newest' | 'oldest' | 'az' | 'za';
