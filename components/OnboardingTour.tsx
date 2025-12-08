@@ -83,37 +83,39 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ onComplete }) => {
       
       let style: React.CSSProperties = { position: 'fixed' };
       let arrow: React.CSSProperties = {};
+      
+      // Determine if we are in dark mode to adjust arrow color roughly (though CSS handles it better usually)
+      // Here we rely on JS styles so we might assume white arrow for light mode, dark for dark mode?
+      // Since this is inline style, we'll stick to a neutral or check classList.
+      const isDark = document.documentElement.classList.contains('dark');
+      const arrowColor = isDark ? '#1e293b' : 'white'; // slate-800 vs white
 
       switch (currentStep.position) {
         case 'bottom':
           style.top = rect.bottom + padding;
           style.left = rect.left + rect.width / 2;
           style.transform = 'translateX(-50%)';
-          arrow = { top: -6, left: '50%', marginLeft: -6, borderBottomColor: 'white', borderTopWidth: 0 };
+          arrow = { top: -6, left: '50%', marginLeft: -6, borderBottomColor: arrowColor, borderTopWidth: 0 };
           break;
         case 'top':
           style.top = rect.top - padding;
           style.left = rect.left + rect.width / 2;
           style.transform = 'translate(-50%, -100%)';
-          arrow = { bottom: -6, left: '50%', marginLeft: -6, borderTopColor: 'white', borderBottomWidth: 0 };
+          arrow = { bottom: -6, left: '50%', marginLeft: -6, borderTopColor: arrowColor, borderBottomWidth: 0 };
           break;
         case 'left':
           style.top = rect.top + rect.height / 2;
           style.left = rect.left - padding;
           style.transform = 'translate(-100%, -50%)';
-          arrow = { right: -6, top: '50%', marginTop: -6, borderLeftColor: 'white', borderRightWidth: 0 };
+          arrow = { right: -6, top: '50%', marginTop: -6, borderLeftColor: arrowColor, borderRightWidth: 0 };
           break;
         case 'right':
           style.top = rect.top + rect.height / 2;
           style.left = rect.right + padding;
           style.transform = 'translate(0, -50%)';
-          arrow = { left: -6, top: '50%', marginTop: -6, borderRightColor: 'white', borderLeftWidth: 0 };
+          arrow = { left: -6, top: '50%', marginTop: -6, borderRightColor: arrowColor, borderLeftWidth: 0 };
           break;
       }
-
-      // Boundary checks (basic)
-      // Note: A robust library would handle viewport collisions better. 
-      // This is a simplified custom implementation.
 
       setTooltipStyle(style);
       setArrowStyle(arrow);
@@ -127,6 +129,8 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ onComplete }) => {
     // Small timeout to allow DOM updates
     const timer = setTimeout(updatePosition, 100);
     window.addEventListener('resize', updatePosition);
+    // Also listen for dark mode changes if we want live arrow updates, 
+    // but simpler to just re-render on step change.
     return () => {
       clearTimeout(timer);
       window.removeEventListener('resize', updatePosition);
@@ -152,12 +156,9 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ onComplete }) => {
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40 pointer-events-auto transition-opacity duration-300" />
 
-      {/* Highlight Effect (Simulated via stacking context if needed, but for now just the modal on top) */}
-      {/* In a more complex version, we would use a composed 'mask' to highlight the element. */}
-
       {/* Tooltip Card */}
       <div 
-        className="absolute w-[320px] bg-white rounded-xl shadow-2xl p-6 pointer-events-auto transition-all duration-300 ease-out border border-slate-100/50"
+        className="absolute w-[320px] bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 pointer-events-auto transition-all duration-300 ease-out border border-slate-100/50 dark:border-slate-700"
         style={tooltipStyle}
       >
         {/* Arrow */}
@@ -170,18 +171,18 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ onComplete }) => {
 
         <div className="flex flex-col">
           <div className="flex justify-between items-start mb-2">
-            <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">
+            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
               Step {currentStepIndex + 1} of {STEPS.length}
             </span>
-            <button onClick={handleSkip} className="text-slate-400 hover:text-slate-600">
+            <button onClick={handleSkip} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
           
-          <h3 className="text-lg font-bold text-slate-900 mb-2">{currentStep.title}</h3>
-          <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{currentStep.title}</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
             {currentStep.content}
           </p>
 
@@ -190,13 +191,13 @@ const OnboardingTour: React.FC<OnboardingTourProps> = ({ onComplete }) => {
                {STEPS.map((_, idx) => (
                  <div 
                    key={idx} 
-                   className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentStepIndex ? 'w-6 bg-indigo-600' : 'w-1.5 bg-slate-200'}`}
+                   className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentStepIndex ? 'w-6 bg-indigo-600 dark:bg-indigo-500' : 'w-1.5 bg-slate-200 dark:bg-slate-600'}`}
                  />
                ))}
              </div>
              <button
                onClick={handleNext}
-               className="bg-slate-900 hover:bg-black text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
+               className="bg-slate-900 hover:bg-black dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
              >
                {currentStepIndex === STEPS.length - 1 ? "Get Started" : "Next"}
              </button>

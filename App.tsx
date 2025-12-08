@@ -7,6 +7,26 @@ import AddPromptModal from './components/AddPromptModal';
 import OnboardingTour from './components/OnboardingTour';
 
 const App: React.FC = () => {
+  // --- Dark Mode State ---
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('promptdb-theme');
+      if (saved) return saved === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('promptdb-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('promptdb-theme', 'light');
+    }
+  }, [darkMode]);
+
   // --- History & State Management for Custom Prompts ---
   const [history, setHistory] = useState<{
     past: Prompt[][];
@@ -228,13 +248,12 @@ const App: React.FC = () => {
     } else {
        // For static prompts, we can't persist changes easily without a shadow map
        // But we can trigger re-render for this session
-       // (Not strictly implemented for static prompts in this step as requested scope was Custom Undo/Redo)
        console.log("Rating static prompt:", id, newRating);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col transition-colors duration-200">
       
       {showTour && <OnboardingTour onComplete={handleTourComplete} />}
 
@@ -256,7 +275,7 @@ const App: React.FC = () => {
       )}
 
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => {setSearchQuery(''); setSelectedCategory('All');}}>
@@ -266,19 +285,19 @@ const App: React.FC = () => {
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-900 tracking-tight leading-none">Prompt<span className="text-indigo-600">DB</span></h1>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">Analyst Grade AI Prompts</p>
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-none">Prompt<span className="text-indigo-600 dark:text-indigo-400">DB</span></h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Analyst Grade AI Prompts</p>
               </div>
             </div>
             
             <div className="flex items-center gap-4 flex-grow md:flex-grow-0">
                
                {/* Undo/Redo Controls */}
-               <div className="flex items-center bg-slate-100 rounded-lg p-1">
+               <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
                  <button
                    onClick={undo}
                    disabled={past.length === 0}
-                   className="p-1.5 rounded-md text-slate-500 hover:text-indigo-600 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                   className="p-1.5 rounded-md text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
                    title="Undo"
                  >
                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -288,7 +307,7 @@ const App: React.FC = () => {
                  <button
                    onClick={redo}
                    disabled={future.length === 0}
-                   className="p-1.5 rounded-md text-slate-500 hover:text-indigo-600 hover:bg-white disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                   className="p-1.5 rounded-md text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
                    title="Redo"
                  >
                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -297,16 +316,33 @@ const App: React.FC = () => {
                  </button>
                </div>
 
+               {/* Dark Mode Toggle */}
+               <button
+                 onClick={() => setDarkMode(!darkMode)}
+                 className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                 aria-label="Toggle dark mode"
+               >
+                 {darkMode ? (
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                     <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                   </svg>
+                 ) : (
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                     <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                   </svg>
+                 )}
+               </button>
+
                {/* Search Bar */}
               <div className="relative w-full md:w-80 group" id="tour-search-filter">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5 text-slate-400 dark:text-slate-500 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
                 <input
                   type="text"
-                  className="block w-full pl-10 pr-10 py-2 border border-slate-300 rounded-lg leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200 shadow-sm"
+                  className="block w-full pl-10 pr-10 py-2 border border-slate-300 dark:border-slate-700 rounded-lg leading-5 bg-slate-50 dark:bg-slate-800 placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-slate-100 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm transition-all duration-200 shadow-sm"
                   placeholder="Search prompts..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -314,7 +350,7 @@ const App: React.FC = () => {
                 {searchQuery && (
                   <button 
                     onClick={() => setSearchQuery('')}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
@@ -329,7 +365,7 @@ const App: React.FC = () => {
                   setEditingPrompt(null);
                   setShowAddModal(true);
                 }}
-                className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
+                className="flex items-center gap-1.5 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
@@ -350,7 +386,7 @@ const App: React.FC = () => {
             
             {/* Mobile Category */}
             <div className="block md:hidden w-full">
-              <label htmlFor="category-select" className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">
+              <label htmlFor="category-select" className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">
                 Category
               </label>
               <div className="relative">
@@ -358,7 +394,7 @@ const App: React.FC = () => {
                   id="category-select"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value as Category | 'All' | 'Favorites')}
-                  className="appearance-none block w-full pl-3 pr-10 py-2.5 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm bg-white"
+                  className="appearance-none block w-full pl-3 pr-10 py-2.5 text-base border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 >
                   <option value="All">All Categories</option>
                   <option value="Favorites">♥ Favorites</option>
@@ -366,7 +402,7 @@ const App: React.FC = () => {
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500 dark:text-slate-400">
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                   </svg>
@@ -376,13 +412,13 @@ const App: React.FC = () => {
 
             {/* Desktop Category */}
             <div className="hidden md:flex flex-wrap gap-2 items-center">
-              <span className="text-sm font-medium text-slate-500 mr-2">Filters:</span>
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400 mr-2">Filters:</span>
               <button
                 onClick={() => setSelectedCategory('All')}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border ${
                   selectedCategory === 'All'
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-md transform scale-105'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                    ? 'bg-slate-900 dark:bg-indigo-600 text-white border-slate-900 dark:border-indigo-600 shadow-md transform scale-105'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
               >
                 All
@@ -393,7 +429,7 @@ const App: React.FC = () => {
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border flex items-center gap-1.5 ${
                   selectedCategory === 'Favorites'
                     ? 'bg-rose-500 text-white border-rose-500 shadow-md transform scale-105'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-rose-200 hover:text-rose-600 hover:bg-rose-50'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-rose-200 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20'
                 }`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -402,7 +438,7 @@ const App: React.FC = () => {
                 Favorites
               </button>
 
-              <div className="w-px h-5 bg-slate-300 mx-1"></div>
+              <div className="w-px h-5 bg-slate-300 dark:bg-slate-700 mx-1"></div>
 
               {Object.values(Category).filter(c => c !== 'All').map((cat) => (
                 <button
@@ -411,7 +447,7 @@ const App: React.FC = () => {
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border ${
                     selectedCategory === cat
                       ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform scale-105'
-                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   {cat}
@@ -421,22 +457,22 @@ const App: React.FC = () => {
 
             {/* Sort Control */}
             <div className="flex items-center gap-3 md:ml-auto w-full md:w-auto">
-               <span className="text-sm text-slate-500 hidden lg:inline-block whitespace-nowrap">
+               <span className="text-sm text-slate-500 dark:text-slate-400 hidden lg:inline-block whitespace-nowrap">
                  {stats.displayed} prompts
                </span>
-               <div className="h-4 w-px bg-slate-300 hidden lg:block"></div>
+               <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 hidden lg:block"></div>
                <div className="relative w-full md:w-48">
                  <select
                    value={sortOrder}
                    onChange={(e) => setSortOrder(e.target.value as SortOrder)}
-                   className="appearance-none block w-full pl-3 pr-10 py-2 text-sm border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg border bg-white shadow-sm cursor-pointer"
+                   className="appearance-none block w-full pl-3 pr-10 py-2 text-sm border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-sm cursor-pointer"
                  >
                    <option value="newest">Newest Added</option>
                    <option value="oldest">Oldest Added</option>
                    <option value="az">Name (A-Z)</option>
                    <option value="za">Name (Z-A)</option>
                  </select>
-                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500 dark:text-slate-400">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                     </svg>
@@ -465,14 +501,14 @@ const App: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white rounded-xl border border-dashed border-slate-300">
-            <div className="mx-auto h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-              <svg className="h-8 w-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 transition-colors">
+            <div className="mx-auto h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+              <svg className="h-8 w-8 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-slate-900">No prompts found</h3>
-            <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto">
+            <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">No prompts found</h3>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
               {selectedCategory === 'Favorites' 
                 ? "You haven't added any favorites yet. Click the heart icon on a prompt to save it here."
                 : "We couldn't find any prompts matching your criteria."}
@@ -490,16 +526,16 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="bg-white border-t border-slate-200 mt-auto">
+      <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 mt-auto transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
              <div className="flex items-center gap-2">
-                <div className="h-6 w-6 bg-indigo-600 rounded flex items-center justify-center">
+                <div className="h-6 w-6 bg-indigo-600 dark:bg-indigo-500 rounded flex items-center justify-center">
                     <span className="text-white font-bold text-xs">AI</span>
                 </div>
-                <span className="text-sm font-semibold text-slate-900">PromptDB</span>
+                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">PromptDB</span>
              </div>
-             <p className="text-center text-sm text-slate-500">
+             <p className="text-center text-sm text-slate-500 dark:text-slate-400">
                &copy; {new Date().getFullYear()} AI Analyst PromptDB. All rights reserved.
              </p>
           </div>

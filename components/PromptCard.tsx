@@ -18,13 +18,13 @@ interface PromptCardProps {
 
 const getCategoryColor = (category: Category) => {
   switch (category) {
-    case Category.INVESTMENT_RESEARCH: return 'bg-blue-100 text-blue-800 border-blue-200';
-    case Category.INDUSTRY_ANALYSIS: return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    case Category.COMPANY_OPS: return 'bg-amber-100 text-amber-800 border-amber-200';
-    case Category.VALUATION: return 'bg-purple-100 text-purple-800 border-purple-200';
-    case Category.WRITING: return 'bg-pink-100 text-pink-800 border-pink-200';
-    case Category.AUTOMATION: return 'bg-slate-100 text-slate-800 border-slate-200';
-    default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    case Category.INVESTMENT_RESEARCH: return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+    case Category.INDUSTRY_ANALYSIS: return 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800';
+    case Category.COMPANY_OPS: return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800';
+    case Category.VALUATION: return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800';
+    case Category.WRITING: return 'bg-pink-100 text-pink-800 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-800';
+    case Category.AUTOMATION: return 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
+    default: return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
   }
 };
 
@@ -65,7 +65,7 @@ const PromptCard: React.FC<PromptCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col h-full overflow-hidden group/card relative">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col h-full overflow-hidden group/card relative">
       <div className="p-6 flex-grow flex flex-col">
         <div className="flex items-start justify-between mb-3">
           <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${getCategoryColor(prompt.category)}`}>
@@ -79,7 +79,7 @@ const PromptCard: React.FC<PromptCardProps> = ({
                   e.stopPropagation();
                   onEdit(prompt);
                 }}
-                className="p-1.5 rounded-full text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 transition-colors"
+                className="p-1.5 rounded-full text-slate-300 dark:text-slate-600 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-800 transition-colors"
                 title="Edit custom prompt"
                 aria-label="Edit custom prompt"
               >
@@ -91,7 +91,7 @@ const PromptCard: React.FC<PromptCardProps> = ({
             {prompt.isCustom && onDelete && (
               <button
                 onClick={handleDelete}
-                className="p-1.5 rounded-full text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                className="p-1.5 rounded-full text-slate-300 dark:text-slate-600 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-slate-800 transition-colors"
                 title="Delete custom prompt"
                 aria-label="Delete custom prompt"
               >
@@ -108,8 +108,8 @@ const PromptCard: React.FC<PromptCardProps> = ({
               }}
               className={`p-1.5 rounded-full transition-all duration-200 focus:outline-none ${
                 isFavorite 
-                  ? 'text-rose-500 bg-rose-50 hover:bg-rose-100 hover:scale-110' 
-                  : 'text-slate-300 hover:text-rose-400 hover:bg-slate-50'
+                  ? 'text-rose-500 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/30 hover:scale-110' 
+                  : 'text-slate-300 dark:text-slate-600 hover:text-rose-400 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
               title={isFavorite ? "Remove from favorites" : "Add to favorites"}
               aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
@@ -128,11 +128,11 @@ const PromptCard: React.FC<PromptCardProps> = ({
           </div>
         </div>
         
-        <h3 className="text-lg font-bold text-slate-900 mb-2 leading-tight pr-6">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2 leading-tight pr-6">
           {prompt.title}
         </h3>
         
-        <p className="text-sm text-slate-500 mb-4 line-clamp-2">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">
           {prompt.description}
         </p>
 
@@ -141,30 +141,30 @@ const PromptCard: React.FC<PromptCardProps> = ({
             <button 
               key={tag} 
               onClick={() => onTagClick(tag)}
-              className="text-xs text-slate-500 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded transition-colors cursor-pointer"
+              className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-2 py-1 rounded transition-colors cursor-pointer"
             >
               #{tag}
             </button>
           ))}
         </div>
 
-        <div className="bg-slate-50 rounded-lg p-3 border border-slate-100 relative group flex-grow mb-4">
-           <pre className="text-xs text-slate-700 whitespace-pre-wrap font-mono leading-relaxed max-h-48 overflow-y-auto custom-scrollbar">
+        <div className="bg-slate-50 dark:bg-slate-950 rounded-lg p-3 border border-slate-100 dark:border-slate-800 relative group flex-grow mb-4">
+           <pre className="text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-mono leading-relaxed max-h-48 overflow-y-auto custom-scrollbar">
              {prompt.content}
            </pre>
            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={handleCopy}
-                className="bg-white p-1.5 rounded-md shadow-sm border border-slate-200 hover:bg-slate-50 focus:outline-none"
+                className="bg-white dark:bg-slate-800 p-1.5 rounded-md shadow-sm border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none"
                 title="Copy prompt"
                 aria-label="Copy prompt text"
               >
                 {copied ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 )}
@@ -173,7 +173,7 @@ const PromptCard: React.FC<PromptCardProps> = ({
         </div>
 
         {/* Rating Section */}
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100/50">
+        <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100/50 dark:border-slate-800/50">
           <div className="flex items-center gap-1">
             <div className="flex" onMouseLeave={() => setHoverRating(0)}>
               {[1, 2, 3, 4, 5].map((star) => (
@@ -189,7 +189,7 @@ const PromptCard: React.FC<PromptCardProps> = ({
                     className={`w-5 h-5 ${
                       star <= (hoverRating || Math.round(prompt.rating)) 
                         ? 'text-amber-400 fill-current' 
-                        : 'text-slate-200 fill-current'
+                        : 'text-slate-200 dark:text-slate-700 fill-current'
                     }`} 
                     viewBox="0 0 20 20"
                   >
@@ -198,19 +198,19 @@ const PromptCard: React.FC<PromptCardProps> = ({
                 </button>
               ))}
             </div>
-            <div className="flex items-center ml-2 text-xs text-slate-500 font-medium">
+            <div className="flex items-center ml-2 text-xs text-slate-500 dark:text-slate-400 font-medium">
               <span>{prompt.rating.toFixed(1)}</span>
-              <span className="mx-1 text-slate-300">•</span>
+              <span className="mx-1 text-slate-300 dark:text-slate-600">•</span>
               <span>{prompt.ratingCount} {prompt.ratingCount === 1 ? 'rating' : 'ratings'}</span>
             </div>
           </div>
           {hasRated && (
-             <span className="text-xs text-green-600 font-medium animate-pulse">Thanks!</span>
+             <span className="text-xs text-green-600 dark:text-green-400 font-medium animate-pulse">Thanks!</span>
           )}
         </div>
       </div>
       
-      <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-center">
+      <div className="px-6 py-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center">
         <button 
           id={tourTargetMap?.run}
           onClick={() => onRun(prompt)}
